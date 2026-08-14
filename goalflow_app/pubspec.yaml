@@ -1,0 +1,44 @@
+name: goalflow_app
+description: GoalFlow - define goals, break them into actions, and see whether you are actually on track.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # state management + DI
+  flutter_riverpod: ^2.6.1
+
+  # routing
+  go_router: ^14.6.2
+
+  # networking
+  dio: ^5.7.0
+
+  # storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.3
+
+  # push notifications
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
+
+  # ui
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.2
+  table_calendar: ^3.1.2
+  image_picker: ^1.1.2
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

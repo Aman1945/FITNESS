@@ -1,0 +1,90 @@
+# Render blueprint for the GoalFlow API.
+#
+# In Render: New > Blueprint > point at this repo. Render reads this file and
+# creates the service. Values marked sync:false must be filled in by hand in the
+# dashboard so secrets never live in the repo.
+#
+# NOTE ON THE FREE PLAN: free web services sleep after ~15 minutes of inactivity.
+# While asleep, the cron jobs in src/jobs do not run, so reminders and the
+# nightly schedule generation are skipped. Either use the starter plan, or ping
+# /health every 10 minutes from an external scheduler (see docs/02-deployment.md).
+
+services:
+  - type: web
+    name: goalflow-api
+    runtime: node
+    plan: free
+    region: singapore # closest to India; change if your users are elsewhere
+    rootDir: goalflow-api
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+      - key: NODE_ENV
+        value: production
+
+      # Render provides PORT automatically; the app reads it from env.
+      - key: PORT
+        value: "4000"
+
+      # ---- must be set in the Render dashboard ----
+
+      # Public URL of this service, e.g. https://goalflow-api.onrender.com
+      - key: API_BASE_URL
+        sync: false
+
+      # MongoDB Atlas SRV string, ending in /goalflow
+      - key: MONGODB_URI
+        sync: false
+
+      # Generated for you on first deploy; rotating them signs everyone out.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      - key: ACCESS_TOKEN_TTL
+        value: 15m
+      - key: REFRESH_TOKEN_TTL_DAYS
+        value: "30"
+
+      # ---- optional: email via Resend ----
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: GoalFlow <onboarding@resend.dev>
+      # Set to false only once you have a verified sending domain.
+      - key: EMAIL_DRY_RUN
+        value: "true"
+
+      # ---- optional: push via Firebase Cloud Messaging ----
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      # Paste the whole private key including the BEGIN/END lines.
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+
+      - key: ENABLE_CRON
+        value: "true"
+      - key: MATERIALISE_DAYS_AHEAD
+        value: "7"
+
+      # Deep link scheme used in emails
+      - key: APP_DEEP_LINK
+        value: goalflow://
+
+      # Optional self-ping. Set to this service's own public /health URL to keep
+      # the free instance awake. Read the caveats in docs/02-deployment.md first:
+      # it cannot wake the service once it has already slept, and staying awake
+      # 24/7 uses nearly all of the 750 free instance-hours per month.
+      - key: KEEP_AWAKE_URL
+        sync: false
+      - key: KEEP_AWAKE_MINUTES
+        value: "10"

@@ -1,0 +1,69 @@
+# ---- secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.jks
+*.keystore
+key.properties
+google-services.json
+GoogleService-Info.plist
+serviceAccountKey.json
+
+# ---- node ----
+node_modules/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+.npm/
+
+# ---- backend runtime ----
+goalflow-api/uploads/
+goalflow-api/logs/
+*.log
+
+# ---- flutter / dart ----
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+**/generated_plugin_registrant.dart
+
+# ---- android ----
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/**/gradle-wrapper.jar
+**/android/app/release/
+**/android/app/debug/
+**/android/app/profile/
+**/android/key.properties
+
+# ---- ios ----
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/App.framework/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Generated.xcconfig
+**/ios/Runner.xcworkspace/xcuserdata/
+**/ios/**/*.mode1v3
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/xcuserdata/
+
+# ---- editors / os ----
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+*.swp
