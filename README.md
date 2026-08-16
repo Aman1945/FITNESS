@@ -104,6 +104,9 @@ bcrypt hashing, 15-minute JWTs, rotating refresh tokens stored only as hashes.
 
 | Doc | What's in it |
 |---|---|
+| **[GoalFlow-Features-and-Functionality.pdf](docs/GoalFlow-Features-and-Functionality.pdf)** | Features and functionality, as a shareable PDF |
+| **[GoalFlow-Technical-Architecture.pdf](docs/GoalFlow-Technical-Architecture.pdf)** | Architecture and implementation, as a shareable PDF |
+| [docs/04-features-and-functionality.md](docs/04-features-and-functionality.md) | Source for the features PDF |
 | [docs/03-tech-doc.md](docs/03-tech-doc.md) | **How everything works** — every library and why, request lifecycle, data model, algorithms, notification pipeline, state management |
 | [docs/02-deployment.md](docs/02-deployment.md) | Atlas + Render + APK distribution, with a troubleshooting table |
 | [docs/01-architecture-and-plan.md](docs/01-architecture-and-plan.md) | Original design decisions and build order |

@@ -70,3 +70,6 @@ goalflow-api/logs/
 
 # local helper containing Firebase service-account values for Render
 .render-firebase-env.txt
+
+# generated PDF intermediates
+docs/.*.html
