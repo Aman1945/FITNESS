@@ -4,7 +4,7 @@ A personal goal-tracking mobile app. Define what you want to achieve, break it i
 milestones and actions, and see honestly whether you are on track.
 
 **Flutter** (Android + iOS) · **Node.js + TypeScript + Express** · **MongoDB Atlas** ·
-**Firebase Cloud Messaging** · **Resend**
+**FCM** (push) · **Email** (OTP, reset, digests)
 
 | | |
 |---|---|

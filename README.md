@@ -3,7 +3,7 @@
 Define a goal, break it into milestones and actions, and see honestly whether you
 are on track. Built for the GoalFlow Hackathon.
 
-**Flutter** · **Node.js + TypeScript + Express** · **MongoDB** · **Firebase Cloud Messaging** · **Resend**
+**Flutter** · **Node.js + TypeScript + Express** · **MongoDB** · **FCM** · **Email**
 
 | | |
 |---|---|
@@ -78,8 +78,8 @@ well, what was difficult, what to improve.
 
 **Notifications** — action reminders, daily summaries, weekly digests, milestone alerts,
 and a **login greeting that changes with context**: first-ever sign-in, same-day return,
-a few days away, and a long absence each say something different. Push via FCM, email via
-Resend, both behind one service that checks preferences and quiet hours first.
+a few days away, and a long absence each say something different. Push via FCM and email
+both go through one service that checks preferences and quiet hours first.
 
 **Appearance** — Light / Dark / System, persisted on the device and applied instantly.
 

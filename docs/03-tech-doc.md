@@ -30,7 +30,7 @@ Written so another developer can change something without first reading everythi
 │MongoDB │   │ node-cron  │──▶│ NotificationSvc  │
 │ Atlas  │   │  6 jobs    │   └────┬────────┬────┘
 └────────┘   └────────────┘        │        │
-                              FCM ◀┘        └▶ Resend
+                              FCM ◀┘        └▶ Email
                             (push)            (email)
 ```
 
@@ -52,7 +52,7 @@ widget never calls the network.
 | `luxon` | Timezone maths | Every schedule decision is per-user-local; `Date` cannot do this correctly |
 | `node-cron` | Scheduled jobs | Six jobs, in-process. Redis/BullMQ would be right at multi-instance scale, not here |
 | `firebase-admin` | Push (FCM) | Backend-driven sends to Android and iOS from one API |
-| `resend` | Transactional email | Verification, reset, weekly digest |
+| Email SDK | Transactional email | Verification, reset, weekly digest |
 | `pino` + `pino-http` | Structured logging | Request IDs, and redaction so passwords never reach a log |
 | `helmet`, `cors`, `express-rate-limit` | HTTP hardening | Standard headers, and brute-force limits on credential routes |
 | `multer` | Avatar upload | Multipart parsing; images are stored in Mongo, not on Render's ephemeral disk |
@@ -167,7 +167,7 @@ Three details that matter:
 | `mark-missed` | hourly at :20 | `upcoming → missed` once a user's local day has ended |
 | `action-reminders` | every 15 min | Push for occurrences due within the user's lead time |
 | `daily-summary` | every 15 min | Fires in the bucket containing the user's chosen time |
-| `weekly-digest` | every 30 min | Push + Resend email on the user's chosen weekday/time |
+| `weekly-digest` | every 30 min | Push + email on the user's chosen weekday/time |
 | `recompute-goals` | 01:00 daily | Refresh cached `progressPercent` and `computedStatus` |
 
 Jobs run **hourly, not daily**, and compare against each user's *local* clock — that is
@@ -228,12 +228,12 @@ cron job / login / milestone
         ├── is it inside their quiet hours?   (overnight ranges handled)
         │
         ├──▶ sendPush()   FCM multicast → prunes tokens FCM rejects
-        ├──▶ sendEmail()  Resend, or logs the payload in dry-run
+        ├──▶ sendEmail()  delivers, or logs the payload in dry-run
         └──▶ Notification document → the in-app feed and delivery audit
 ```
 
-**Nothing sends outside this function.** Controllers and jobs never touch FCM or Resend
-directly, which is why "respects user preferences" is a property of the system rather
+**Nothing sends outside this function.** Controllers and jobs never touch FCM or the email
+provider directly, which is why "respects user preferences" is a property of the system rather
 than something each caller has to remember. Transactional mail (verification, password
 reset) passes `bypassPreferences` — you cannot opt out of your own reset link.
 
