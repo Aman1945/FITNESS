@@ -8,7 +8,7 @@ are on track. Built for the GoalFlow Hackathon.
 | | |
 |---|---|
 | **Live API** | https://fitness-lgaw.onrender.com |
-| **Database** | MongoDB Atlas (Mumbai) |
+| **Database** | Managed MongoDB cluster, hosted separately from the API |
 | **Android APK** | `GoalFlow-v1.apk` |
 | **Demo login** | `demo@goalflow.app` / `Demo1234` |
 

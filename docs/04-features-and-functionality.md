@@ -310,7 +310,24 @@ Two users with the same goal get genuinely different schedules, reminders and da
 
 ---
 
-## 16. End-to-end journey
+## 16. Deployment
+
+The backend and the database are hosted **separately**, on independent infrastructure:
+
+| Piece | Where |
+|---|---|
+| API | Its own dedicated server instance, deployed from source and running continuously |
+| Database | A separate managed MongoDB cluster, in its own region |
+| Mobile app | Distributed as a release build |
+
+Keeping them apart means the database is not tied to the lifecycle of the API server:
+the backend can be redeployed, restarted or scaled without touching the data, and the
+cluster is reachable only over an authenticated connection string held in server-side
+environment configuration — never bundled into the app.
+
+---
+
+## 17. End-to-end journey
 
 ```
 Open app → Create account → Verify email → Onboarding

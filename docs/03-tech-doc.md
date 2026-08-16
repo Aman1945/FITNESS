@@ -34,6 +34,13 @@ Written so another developer can change something without first reading everythi
                             (push)            (email)
 ```
 
+The API and the database run on **separate hosts**: the Express server is deployed to
+its own dedicated server instance, and MongoDB lives on an independent managed cluster in
+its own region. Nothing about the data depends on the API server's lifecycle -- the
+backend can be rebuilt or restarted without touching it -- and the cluster is reached
+only through a credentialed connection string held in server-side environment
+configuration, never shipped inside the mobile app.
+
 **One rule holds the whole thing together:** business logic lives in services on the
 backend and in providers on the client. A route handler never computes anything, and a
 widget never calls the network.
