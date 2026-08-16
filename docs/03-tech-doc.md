@@ -240,9 +240,9 @@ reset) passes `bypassPreferences` — you cannot opt out of your own reset link.
 ### Firebase — deliberately limited
 
 Firebase is used for **push only**, plus verifying a Google sign-in ID token. Sessions
-are always issued by this backend. The service account is *project*-level, so the
-existing `big-sams-oms` Firebase project serves GoalFlow too; only the mobile app needs
-registering separately, because `google-services.json` is tied to a package name.
+are always issued by this backend. The service account is *project*-level, so one Firebase
+project can serve several apps; only each mobile app needs registering separately,
+because `google-services.json` is tied to a package name.
 
 Both sides degrade safely: without credentials the backend logs the payload instead of
 sending, and the app runs with push disabled rather than crashing at launch.

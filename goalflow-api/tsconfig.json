@@ -1,9 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
-    "moduleResolution": "node",
     "lib": ["ES2022"],
+
+    // node16 rather than the legacy "node"/"node10" pair: newer TypeScript
+    // releases removed node10 resolution outright, which broke the deploy.
+    // package.json has no "type": "module", so output stays CommonJS and
+    // relative imports do not need file extensions.
+    "module": "node16",
+    "moduleResolution": "node16",
+
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
@@ -11,9 +17,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "baseUrl": "src",
-    "paths": { "@/*": ["*"] }
+    "sourceMap": true
+    // No baseUrl/paths: the aliases were never used, and both options were
+    // removed in newer TypeScript. Imports are all relative.
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

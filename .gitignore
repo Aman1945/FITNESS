@@ -73,3 +73,6 @@ goalflow-api/logs/
 
 # generated PDF intermediates
 docs/.*.html
+
+# local helper holding real credentials for pasting into Render
+goalflow-api/.render-env-ALL.txt

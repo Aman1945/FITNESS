@@ -5,6 +5,8 @@ import { Goal } from '../../models/Goal';
 import { localDayStart } from '../../utils/date';
 import { logger } from '../../config/logger';
 import { dispatch } from './notification.service';
+import { sendPush } from './push.service';
+import { Notification } from '../../models/Notification';
 import { getConsistency } from '../progress/progress.service';
 
 /**
@@ -187,13 +189,11 @@ export async function flushPendingGreeting(userId: string) {
   await User.updateOne({ _id: userId }, { $unset: { pendingGreetingAt: 1 } });
   if (ageMinutes > 10 || user.deviceTokens.length === 0) return;
 
-  const { Notification } = await import('../../models/Notification');
   const stored = await Notification.findOne({ user: user._id, type: 'welcome' }).sort({
     createdAt: -1,
   });
   if (!stored) return;
 
-  const { sendPush } = await import('./push.service');
   await sendPush(
     user.id,
     user.deviceTokens.map((d) => d.token),

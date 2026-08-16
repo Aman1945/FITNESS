@@ -163,8 +163,7 @@ def build(md_name: str, out_name: str, title: str, subtitle: str) -> Path:
       <div class="meta">
         <div><b>Stack</b> &nbsp; Flutter · Node.js + TypeScript + Express · MongoDB Atlas
              · Firebase Cloud Messaging · Resend</div>
-        <div><b>API</b> &nbsp; https://fitness-lgaw.onrender.com</div>
-        <div><b>Demo</b> &nbsp; demo@goalflow.app / Demo1234</div>
+        <div><b>Demo login</b> &nbsp; demo@goalflow.app / Demo1234</div>
       </div>
     </div>
     """

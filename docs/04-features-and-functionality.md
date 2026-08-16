@@ -8,7 +8,6 @@ milestones and actions, and see honestly whether you are on track.
 
 | | |
 |---|---|
-| Live API | https://fitness-lgaw.onrender.com |
 | Demo login | `demo@goalflow.app` / `Demo1234` |
 | Screens | 20 |
 | API endpoints | 53 |
