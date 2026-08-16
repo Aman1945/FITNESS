@@ -151,6 +151,11 @@ export async function sendSessionGreeting(user: IUser, previousLogin?: Date | nu
       title: greeting.title,
       body: greeting.body,
       data: { type: 'welcome', kind: greeting.kind, route: '/home' },
+      // Quiet hours exist to stop the app waking someone up unprompted. A
+      // greeting is the opposite: the user just signed in, so they are awake
+      // and holding the phone. Suppressing it at 23:00 only makes the app look
+      // broken. Reminders and digests still respect quiet hours.
+      force: true,
     });
 
     // On a brand-new account the app has not registered its FCM token yet, so

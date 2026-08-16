@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Firebase Cloud Messaging wiring for Android and iOS.
@@ -84,7 +85,7 @@ class PushService {
   Future<void> _initLocal() async {
     await _local.initialize(
       const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('ic_stat_notification'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: true,
@@ -147,6 +148,10 @@ class PushService {
           channelDescription: _channel.description,
           importance: Importance.high,
           priority: Priority.high,
+          // Flat white silhouette + brand tint, matching what the manifest
+          // declares for background messages so both look identical.
+          icon: 'ic_stat_notification',
+          color: const Color(0xFF6C6CE8),
           // Long text so a full greeting is readable without expanding.
           styleInformation: BigTextStyleInformation(n.body ?? ''),
         ),

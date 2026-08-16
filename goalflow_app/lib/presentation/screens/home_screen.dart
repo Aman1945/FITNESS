@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/providers.dart';
+import '../../application/theme_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/action_item.dart';
@@ -263,6 +264,7 @@ class HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
                       ),
                     ),
                     const SizedBox(width: Gap.sm),
+                    const _ThemeButton(),
                     _BellButton(unread: unread),
                     const SizedBox(width: 2),
                     _AvatarButton(
@@ -305,6 +307,39 @@ class HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
       old.unread != unread ||
       old.todayRatio != todayRatio ||
       old.topPadding != topPadding;
+}
+
+/// One-tap appearance switch: System -> Light -> Dark -> System.
+///
+/// The icon always shows the mode you are currently in, and the tooltip names
+/// the one you would move to, so a single control stays legible. Settings keeps
+/// the full three-way picker for anyone who wants to choose directly.
+class _ThemeButton extends ConsumerWidget {
+  const _ThemeButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    final next = switch (mode) {
+      ThemeMode.system => ThemeMode.light,
+      ThemeMode.light => ThemeMode.dark,
+      ThemeMode.dark => ThemeMode.system,
+    };
+
+    return IconButton(
+      onPressed: () => ref.read(themeModeProvider.notifier).cycle(),
+      tooltip: 'Theme: ${mode.label} - tap for ${next.label}',
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        transitionBuilder: (child, animation) => RotationTransition(
+          turns: Tween(begin: 0.75, end: 1.0).animate(animation),
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        // The key is what tells AnimatedSwitcher this is a different icon.
+        child: Icon(mode.icon, key: ValueKey(mode), size: 22),
+      ),
+    );
+  }
 }
 
 class _BellButton extends StatelessWidget {

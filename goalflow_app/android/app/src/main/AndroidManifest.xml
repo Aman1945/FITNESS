@@ -35,6 +35,14 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <!-- Background FCM messages use this channel; it matches the one the
              app creates at startup and the channelId the backend sends. -->
+        <!-- Android tints a notification icon by its alpha mask, so this must be
+             a flat white silhouette. Pointing it at ic_launcher renders a blob. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="goalflow_default" />
