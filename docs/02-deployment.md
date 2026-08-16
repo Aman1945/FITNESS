@@ -54,7 +54,7 @@ Push the repo to GitHub first. Then either use the blueprint or set it up by han
 
 ### Option A — blueprint (fewer clicks)
 
-`goalflow-api/render.yaml` is already in the repo.
+`render.yaml` is already at the repo root.
 Render → **New** → **Blueprint** → pick the repo. Render creates the service and
 prompts for the secret values.
 
