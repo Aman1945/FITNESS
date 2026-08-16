@@ -3,8 +3,9 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    // Uncomment after adding android/app/google-services.json to enable FCM.
-    // id("com.google.gms.google-services")
+    // Reads android/app/google-services.json and generates the Firebase config
+    // the SDK reads at runtime. Without this the JSON file is inert.
+    id("com.google.gms.google-services")
 }
 
 android {

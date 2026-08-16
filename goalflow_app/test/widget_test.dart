@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:goalflow_app/application/theme_provider.dart';
 
 import 'package:goalflow_app/core/theme/app_theme.dart';
 import 'package:goalflow_app/data/models/goal.dart';
@@ -75,5 +78,53 @@ void main() {
       ),
     );
     expect(find.text('Behind'), findsOneWidget);
+  });
+
+  group('ThemeMode preference', () {
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
+    test('defaults to following the system', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      expect(container.read(themeModeProvider), ThemeMode.system);
+    });
+
+    test('applies a chosen mode immediately and persists it', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container.read(themeModeProvider.notifier).set(ThemeMode.dark);
+      expect(container.read(themeModeProvider), ThemeMode.dark);
+
+      // A fresh container must read the saved value back. The first read
+      // constructs the notifier, whose restore is async -- so read, let it
+      // settle, then assert.
+      final restored = ProviderContainer();
+      addTearDown(restored.dispose);
+      restored.read(themeModeProvider);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(restored.read(themeModeProvider), ThemeMode.dark);
+    });
+
+    test('cycles System -> Light -> Dark -> System', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(themeModeProvider.notifier);
+
+      await notifier.cycle();
+      expect(container.read(themeModeProvider), ThemeMode.light);
+      await notifier.cycle();
+      expect(container.read(themeModeProvider), ThemeMode.dark);
+      await notifier.cycle();
+      expect(container.read(themeModeProvider), ThemeMode.system);
+    });
+
+    test('every mode has a label, description and icon', () {
+      for (final mode in ThemeMode.values) {
+        expect(mode.label, isNotEmpty);
+        expect(mode.description, isNotEmpty);
+        expect(mode.icon, isNotNull);
+      }
+    });
   });
 }

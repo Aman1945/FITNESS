@@ -67,3 +67,6 @@ goalflow-api/logs/
 .vscode/*
 !.vscode/launch.json
 *.swp
+
+# local helper containing Firebase service-account values for Render
+.render-firebase-env.txt

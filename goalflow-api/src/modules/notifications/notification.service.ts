@@ -15,6 +15,12 @@ export interface DispatchInput {
   email?: { subject: string; html: string };
   /** transactional mail (verification, reset) ignores preferences */
   bypassPreferences?: boolean;
+  /**
+   * The user explicitly asked for this one (a "send test notification" tap).
+   * Still recorded in the feed, but quiet hours and per-type toggles do not
+   * apply -- a test that is silently suppressed teaches the user nothing.
+   */
+  force?: boolean;
 }
 
 /**
@@ -23,15 +29,16 @@ export interface DispatchInput {
  * quiet hours are enforced here, exactly once (JD section 16).
  */
 export async function dispatch(input: DispatchInput) {
-  const { user, type, title, body, data = {}, email, bypassPreferences } = input;
+  const { user, type, title, body, data = {}, email, bypassPreferences, force } = input;
   const prefs = user.notificationPreference;
 
   let pushResult: 'sent' | 'failed' | 'skipped' = 'skipped';
   let emailResult: 'sent' | 'failed' | 'skipped' = 'skipped';
 
-  const allowed = bypassPreferences || isTypeEnabled(user, type);
+  const allowed = bypassPreferences || force || isTypeEnabled(user, type);
   const quiet =
     !bypassPreferences &&
+    !force &&
     prefs.quietHours?.enabled &&
     isWithinQuietHours(
       nowIn(user.timezone).toFormat('HH:mm'),

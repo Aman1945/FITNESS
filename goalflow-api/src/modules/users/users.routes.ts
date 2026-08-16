@@ -8,6 +8,7 @@ import { User } from '../../models/User';
 import { PROGRESS_STYLES, TIME_OF_DAY } from '../../models/enums';
 import { ApiError } from '../../utils/ApiError';
 import { registerDevice, removeDevice } from '../notifications/notification.service';
+import { flushPendingGreeting } from '../notifications/greeting.service';
 
 const router = Router();
 router.use(requireAuth);
@@ -153,6 +154,9 @@ router.post(
   ),
   asyncHandler(async (req, res) => {
     await registerDevice(req.userId!, req.body.token, req.body.platform);
+    // A first-ever sign-in stores its welcome before any device exists; deliver
+    // it now rather than losing the one greeting that matters most.
+    await flushPendingGreeting(req.userId!);
     ok(res, null, 'Device registered for push');
   }),
 );

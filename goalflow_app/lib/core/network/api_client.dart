@@ -12,8 +12,14 @@ class ApiClient {
         _dio = Dio(
           BaseOptions(
             baseUrl: baseUrl ?? defaultBaseUrl,
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 20),
+            // Generous on purpose. A free-tier host (Render, Fly, Railway) spins
+            // its container down when idle, and the first request afterwards
+            // waits for a cold start -- measured at 17s and documented up to 60s.
+            // Shorter timeouts here surface as "cannot reach the server" on the
+            // very first launch of the day, which reads as a broken app.
+            connectTimeout: const Duration(seconds: 75),
+            receiveTimeout: const Duration(seconds: 75),
+            sendTimeout: const Duration(seconds: 75),
             contentType: 'application/json',
             validateStatus: (s) => s != null && s < 500,
           ),
@@ -40,19 +46,32 @@ class ApiClient {
   /// Called when refreshing fails, so the app can drop to the login screen.
   VoidCallback? onSessionExpired;
 
-  /// Android emulators reach the host machine on 10.0.2.2, iOS simulators and
-  /// the web build on localhost. Override with --dart-define=API_BASE_URL=...
-  /// for a real device or a deployed backend.
+  /// The deployed backend. Defaulting to production rather than localhost means
+  /// a plain `flutter run`, and an APK handed to someone else, both just work --
+  /// forgetting the --dart-define used to surface as "cannot reach the server".
+  static const productionBaseUrl = 'https://fitness-lgaw.onrender.com/api/v1';
+
+  /// Resolution order:
+  ///   1. --dart-define=API_BASE_URL=...   (explicit, always wins)
+  ///   2. --dart-define=USE_LOCAL_API=true (localhost, or 10.0.2.2 on an
+  ///      Android emulator, which is how the emulator reaches the host machine)
+  ///   3. the deployed backend
   ///
   /// Uses `defaultTargetPlatform` rather than `dart:io`'s `Platform`, because
   /// importing dart:io at all breaks the web build.
   static String get defaultBaseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:4000/api/v1';
+
+    const useLocal = bool.fromEnvironment('USE_LOCAL_API');
+    if (useLocal) {
+      final host = !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+          ? '10.0.2.2'
+          : 'localhost';
+      return 'http://$host:4000/api/v1';
     }
-    return 'http://localhost:4000/api/v1';
+
+    return productionBaseUrl;
   }
 
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
@@ -101,9 +120,17 @@ class ApiClient {
 
       throw _fromEnvelope(body, res.statusCode);
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
+      // A timeout and a refused connection mean different things to the user:
+      // one is "wait a moment", the other is "check your wifi".
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw ApiException(
+          'The server is taking longer than usual to respond. '
+          'It may be waking up - try again in a moment.',
+        );
+      }
+      if (e.type == DioExceptionType.connectionError) {
         throw ApiException(
           'Cannot reach the server. Check your connection and try again.',
         );

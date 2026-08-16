@@ -56,6 +56,7 @@ export const NOTIFICATION_TYPES = [
   'weekly_digest',
   'milestone',
   'goal_status',
+  'welcome',
   'system',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

@@ -60,6 +60,11 @@ export interface IUser extends Document {
   refreshTokens: IRefreshToken[];
   deviceTokens: IDeviceToken[];
   lastActiveAt?: Date;
+  /** how many sessions this account has ever opened */
+  loginCount: number;
+  /** the PREVIOUS sign-in, used to work out how long they were away */
+  lastLoginAt?: Date;
+  pendingGreetingAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -155,6 +160,10 @@ const userSchema = new Schema<IUser>(
       default: [],
     },
     lastActiveAt: { type: Date },
+    loginCount: { type: Number, default: 0 },
+    lastLoginAt: { type: Date },
+    // Set when a greeting was stored but no device was registered yet to push it.
+    pendingGreetingAt: { type: Date },
   },
   { timestamps: true },
 );

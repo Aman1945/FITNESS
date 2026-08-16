@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../application/providers.dart';
+import '../../../application/theme_provider.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -220,6 +221,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           }),
 
           const SizedBox(height: Gap.xl),
+          const SectionHeader('Appearance'),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Theme', style: theme.textTheme.labelLarge),
+                const SizedBox(height: Gap.xs),
+                Text(
+                  ref.watch(themeModeProvider).description,
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: Gap.md),
+                _ThemePicker(
+                  selected: ref.watch(themeModeProvider),
+                  onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: Gap.xl),
           const SectionHeader('Notifications'),
           AppCard(
             padding: EdgeInsets.zero,
@@ -297,6 +319,103 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Text('GoalFlow v1.0.0', style: theme.textTheme.bodySmall),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Segmented System / Light / Dark control.
+/// Deliberately shows all three at once -- a cycling icon button hides which
+/// options exist, and "System" is the one people forget they can go back to.
+class _ThemePicker extends StatelessWidget {
+  const _ThemePicker({required this.selected, required this.onChanged});
+
+  final ThemeMode selected;
+  final ValueChanged<ThemeMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        for (final mode in ThemeMode.values)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: mode == ThemeMode.dark ? 0 : Gap.sm,
+              ),
+              child: _ThemeOption(
+                mode: mode,
+                isSelected: mode == selected,
+                accent: scheme.primary,
+                onTap: () => onChanged(mode),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.mode,
+    required this.isSelected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final ThemeMode mode;
+  final bool isSelected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '${mode.label} theme',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Gap.radiusSm),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: Gap.md),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? accent.withValues(alpha: isDark ? 0.20 : 0.10)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(Gap.radiusSm),
+            border: Border.all(
+              color: isSelected ? accent : theme.dividerColor,
+              width: isSelected ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                mode.icon,
+                size: 21,
+                color: isSelected ? accent : theme.textTheme.bodySmall?.color,
+              ),
+              const SizedBox(height: Gap.xs + 2),
+              Text(
+                mode.label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isSelected ? accent : null,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

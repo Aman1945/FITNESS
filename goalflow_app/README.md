@@ -45,6 +45,7 @@ flutter run --dart-define=API_BASE_URL=https://your-api.up.railway.app/api/v1
 Same flag works for builds:
 
 ```bash
+flutter build apk --release   # uses the deployed default
 flutter build apk --release --dart-define=API_BASE_URL=https://your-api.example.com/api/v1
 ```
 
@@ -202,6 +203,7 @@ flutter pub outdated
 | "Cannot reach the server" | Backend not running, or wrong `API_BASE_URL` for your device |
 | Android emulator can't connect | Use `10.0.2.2`, not `localhost` |
 | Real device can't connect | Same WiFi, and pass your LAN IP via `--dart-define` |
+| App hits localhost unexpectedly | You passed `USE_LOCAL_API=true`; drop it to use the deployed API |
 | Session expires immediately | Backend JWT secrets changed — sign out and back in |
 | Android build: core library desugaring | Already enabled in `android/app/build.gradle.kts` |
 | Push never arrives | Firebase config missing on the app **and** the backend |

@@ -129,13 +129,23 @@ Two fixes:
 
 ## Step 3 — point the app at the deployed backend
 
-The API URL is compiled in at build time:
+The API URL is compiled in at build time. The deployed URL is already the built-in
+default (`ApiClient.productionBaseUrl`), so the plain build works:
 
 ```bash
 cd goalflow_app
+flutter build apk --release
+```
+
+To point a build at a *different* backend, override it:
+
+```bash
 flutter build apk --release \
   --dart-define=API_BASE_URL=https://your-service.onrender.com/api/v1
 ```
+
+If you deploy to your own Render service, update `productionBaseUrl` in
+`lib/core/network/api_client.dart` so the default matches.
 
 Output: `build/app/outputs/flutter-apk/app-release.apk`
 
@@ -144,7 +154,8 @@ Note the `/api/v1` suffix — the base URL includes it.
 Test against the deployed backend before building a release:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=https://your-service.onrender.com/api/v1
+flutter run                                    # deployed backend (default)
+flutter run --dart-define=USE_LOCAL_API=true   # your own machine instead
 ```
 
 ---
@@ -227,7 +238,7 @@ update the app on Play again.
 - [ ] Render deploy green, `/health` returns `{"status":"ok"}`
 - [ ] Both JWT secrets set to fresh random values, not the `.env.example` ones
 - [ ] Keep-awake ping set up, or on the Starter plan
-- [ ] APK built with `--dart-define=API_BASE_URL=...` pointing at Render
+- [ ] APK built against the deployed API (default, or `--dart-define=API_BASE_URL=...`)
 - [ ] Installed the APK on a phone that is **not** on your WiFi and logged in
 - [ ] Told testers to allow "install unknown apps"
 

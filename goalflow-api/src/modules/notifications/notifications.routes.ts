@@ -44,6 +44,8 @@ router.post(
       title: 'GoalFlow',
       body: 'Push notifications are working.',
       data: { type: 'system' },
+      // Explicitly requested, so quiet hours must not swallow it.
+      force: true,
     });
     ok(res, result, 'Test notification dispatched');
   }),

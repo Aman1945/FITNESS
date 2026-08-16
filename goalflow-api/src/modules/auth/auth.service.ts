@@ -5,6 +5,7 @@ import { env } from '../../config/env';
 import { logger } from '../../config/logger';
 import { getAuth } from '../../config/firebase';
 import { dispatch } from '../notifications/notification.service';
+import { sendSessionGreeting } from '../notifications/greeting.service';
 import {
   generateNumericCode,
   generateRefreshToken,
@@ -28,8 +29,16 @@ export interface AuthResult {
   refreshToken: string;
 }
 
-async function issueSession(user: IUser, device?: string): Promise<AuthResult> {
+async function issueSession(
+  user: IUser,
+  device?: string,
+  options: { greet?: boolean } = {},
+): Promise<AuthResult> {
   const { token, hash, expiresAt } = generateRefreshToken();
+
+  // Captured BEFORE the update, because the greeting is built from how long the
+  // gap was since the previous sign-in.
+  const previousLogin = user.lastLoginAt ?? null;
 
   // Keep the newest 5 sessions; older ones are dropped rather than accumulating.
   await User.updateOne(
@@ -41,9 +50,15 @@ async function issueSession(user: IUser, device?: string): Promise<AuthResult> {
           $slice: -5,
         },
       },
-      $set: { lastActiveAt: new Date() },
+      $set: { lastActiveAt: new Date(), lastLoginAt: new Date() },
+      $inc: { loginCount: 1 },
     },
   );
+
+  // Fire and forget: a greeting must never delay or fail a sign-in.
+  if (options.greet !== false) {
+    void sendSessionGreeting(user, previousLogin);
+  }
 
   return {
     user,
@@ -119,7 +134,8 @@ export async function refresh(refreshToken: string): Promise<AuthResult> {
 
   // Rotation: the presented token is consumed before a new one is issued.
   await User.updateOne({ _id: user._id }, { $pull: { refreshTokens: { tokenHash: hash } } });
-  return issueSession(user, stored.device);
+  // A token rotation is not a sign-in; greeting here would fire every 15 minutes.
+  return issueSession(user, stored.device, { greet: false });
 }
 
 export async function logout(userId: string, refreshToken?: string) {

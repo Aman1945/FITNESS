@@ -1,152 +1,134 @@
 # GoalFlow
 
-A personal goal-tracking mobile app. Define what you want to achieve, break it into
-milestones and actions, and see honestly whether you are on track.
+Define a goal, break it into milestones and actions, and see honestly whether you
+are on track. Built for the GoalFlow Hackathon.
 
-Built for the GoalFlow Hackathon.
-
-**Flutter** (mobile) · **Node.js + TypeScript + Express** (API) · **MongoDB** (database)
-· **Firebase Cloud Messaging** (push) · **Resend** (email)
-
----
-
-## Run it in 60 seconds
-
-You need Node 20+, Flutter 3.9+, and MongoDB (local or Atlas).
-
-```bash
-# 1. backend
-cd goalflow-api
-npm install
-cp .env.example .env          # set the two JWT secrets
-npm run seed                  # demo account + 3 weeks of history
-npm run dev                   # http://localhost:4000
-
-# 2. app (new terminal)
-cd goalflow_app
-flutter pub get
-flutter run
-```
-
-### Demo login
-
-```
-email:    demo@goalflow.app
-password: Demo1234
-```
-
-The seed creates three goals whose progress deliberately differs — one **Ahead**, one
-**On track**, one **Behind** — so every branch of the status logic is visible immediately.
-
----
-
-## The idea behind the data model
-
-Most goal apps model an action as a to-do row. That breaks the moment an action
-recurs: "Gym on Mon/Wed/Fri" has no single status, so "did I miss Monday?" becomes
-unanswerable.
-
-GoalFlow separates the **plan** from the **log**:
+**Flutter** · **Node.js + TypeScript + Express** · **MongoDB** · **Firebase Cloud Messaging** · **Resend**
 
 | | |
 |---|---|
-| **`Action`** | the rule — *"Practise Spanish, 25 min, Mon–Fri, 07:30"* |
-| **`ActionOccurrence`** | one dated instance — *"Wed 13 Aug, completed at 07:52"* |
+| **Live API** | https://fitness-lgaw.onrender.com |
+| **Database** | MongoDB Atlas (Mumbai) |
+| **Android APK** | `GoalFlow-v1.apk` |
+| **Demo login** | `demo@goalflow.app` / `Demo1234` |
 
-A nightly job materialises occurrences from each user's routine. Because they are real
-documents, almost everything else becomes a single indexed query rather than recurrence
-maths inside the UI:
+> Render's free tier sleeps after ~15 min idle. The first request wakes it and takes
+> up to a minute — hit `/health` once before a demo.
 
-| Feature | How it falls out |
+---
+
+## Run it
+
+Node 20+, Flutter 3.9+, MongoDB (local or Atlas).
+
+```bash
+# backend
+cd goalflow-api && npm install
+cp .env.example .env        # set the two JWT secrets
+npm run seed                # demo account + 3 weeks of history
+npm run dev                 # http://localhost:4000
+
+# app (new terminal)
+cd goalflow_app && flutter pub get
+flutter run --dart-define=USE_LOCAL_API=true
+```
+
+The app targets the **deployed** API by default, so a plain `flutter run` and the APK
+both work with no flags. `USE_LOCAL_API=true` points it at your machine instead.
+
+The seed creates three goals with deliberately different progress — one **Ahead**, one
+**On track**, one **Behind** — so no screen starts empty.
+
+---
+
+## Features
+
+**Onboarding** — five steps (name, objective, first goal, preferred days/time, session
+length), committed in one atomic call. The answers become the default routine for every
+goal, the default duration on every action, and the tone of the home greeting.
+
+**Goal → Milestone → Action** — a goal is never one large task. Eight categories plus
+custom, priority, target date, and a full lifecycle: create, edit, pause, resume,
+complete, archive. New goals arrive with a starter breakdown to edit rather than a blank
+screen.
+
+**Plan vs log** — the idea the whole app rests on. An `Action` is a *rule*
+("Spanish, 25 min, Mon–Fri, 07:30"); an `ActionOccurrence` is one *dated instance*
+("Wed 13 Aug, completed 07:52"). A nightly job turns rules into instances, which is why
+today's list, missed detection, streaks, the calendar and reminders are all one indexed
+query instead of recurrence maths in the UI.
+
+**Dashboard** — a single `GET /dashboard` powers the whole home screen: personalised
+greeting, today's actions, yesterday's misses carried over, 7-day consistency strip,
+active goals with status, and what needs attention.
+
+**Progress** — goal, milestone, weekly and multi-week views. Status is **not** a
+percentage: it weighs elapsed time, completed work, and 14-day adherence, then explains
+itself in a sentence — *"You've completed 4 of 6 planned sessions this week."*
+
+**Consistency** — a day only counts if something was planned for it. Days with nothing
+planned are neutral, so a rest day you scheduled yourself never breaks a streak. No
+points, badges or levels.
+
+**Calendar** — month grid of planned, completed and missed actions. Complete, skip or
+reschedule from any day.
+
+**Weekly reflection** — auto-generated stats plus three optional prompts: what went
+well, what was difficult, what to improve.
+
+**Notifications** — action reminders, daily summaries, weekly digests, milestone alerts,
+and a **login greeting that changes with context**: first-ever sign-in, same-day return,
+a few days away, and a long absence each say something different. Push via FCM, email via
+Resend, both behind one service that checks preferences and quiet hours first.
+
+**Appearance** — Light / Dark / System, persisted on the device and applied instantly.
+
+**Auth** — sign up, email verification, login, password reset, logout, optional Google.
+bcrypt hashing, 15-minute JWTs, rotating refresh tokens stored only as hashes.
+
+---
+
+## Screens
+
+20 in total.
+
+**Auth** splash · register · verify email · login · forgot password
+**Setup** onboarding
+**Core** home · today · goals · goal detail · calendar · progress · weekly reflection
+**Editors** create/edit goal · create milestone · create action
+**Account** profile · settings · notification preferences · notifications feed
+
+---
+
+## Documentation
+
+| Doc | What's in it |
 |---|---|
-| Today's actions | `find({ user, scheduledDate: today })` |
-| Missed detection | cron flips `upcoming` → `missed` once the user's day ends |
-| History preserved | occurrences are never deleted, only status-changed |
-| Calendar | occurrences already carry a date |
-| Weekly progress (4/5) | count planned vs completed in the week |
-| Consistency streak | walk occurrence days backwards |
-| On track / Behind | compare completed against *planned so far* |
-| Reminders | every occurrence has a `scheduledAt` — that is the queue |
-
----
-
-## Progress status
-
-Not a percentage. Four independent signals:
-
-```
-timeRatio = how much of the goal's window has elapsed
-workRatio = completed occurrences / all planned occurrences
-adherence = last 14 days: completed / (completed + missed)   [skips excluded]
-delta     = workRatio - timeRatio
-```
-
-| Condition (first match wins) | Status |
-|---|---|
-| `workRatio >= 1` | **Completed** |
-| goal younger than 7 days | **On track** *(grace period)* |
-| `delta >= +0.10` | **Ahead** |
-| `delta >= -0.05` and `adherence >= 0.60` | **On track** |
-| `delta >= -0.20` or `adherence >= 0.40` | **Needs attention** |
-| otherwise | **Behind** |
-
-Every status ships with a plain-language reason the UI shows verbatim —
-*"You've completed 4 of 6 planned sessions this week."* A coloured chip on its own
-explains nothing.
-
-**Consistency** counts a day only if something was planned for it. Days with nothing
-planned are neutral: they neither break nor extend a streak. A rest day the user
-scheduled themselves is not a failure.
-
----
-
-## Repository layout
-
-```
-GoalFlow/
-├── docs/
-│   ├── 00-JD-original.md            the hackathon brief, verbatim
-│   ├── 01-architecture-and-plan.md  stack rationale, data model, API, build order
-│   └── 02-deployment.md             Atlas + Render + APK distribution
-├── goalflow-api/                    Node + TypeScript + Express + Mongoose
-│   └── README.md                    env vars, endpoints, jobs, security
-└── goalflow_app/                    Flutter
-    └── README.md                    screens, architecture, design tokens
-```
-
----
-
-## What is implemented
-
-**21 screens** — splash, register, verify email, login, forgot password, onboarding
-(5 steps), home, today, goals, create/edit goal, goal detail, create milestone,
-create action, schedule, progress, weekly reflection, profile, settings, notification
-preferences, notifications feed.
-
-**Backend** — 45+ REST endpoints, JWT with rotating refresh tokens, zod validation at
-the edge with human-readable errors, ownership guards, 6 timezone-aware cron jobs,
-FCM push and Resend email behind one preference-checking service, pino logging,
-zod-validated environment.
-
-**App** — Riverpod state, go_router with a single auth guard, dio with transparent
-token refresh, secure keychain storage, dark mode, skeleton loaders, drawn empty
-states. No business logic in widgets: a widget never calls the network and never
-computes a status.
+| [docs/03-tech-doc.md](docs/03-tech-doc.md) | **How everything works** — every library and why, request lifecycle, data model, algorithms, notification pipeline, state management |
+| [docs/02-deployment.md](docs/02-deployment.md) | Atlas + Render + APK distribution, with a troubleshooting table |
+| [docs/01-architecture-and-plan.md](docs/01-architecture-and-plan.md) | Original design decisions and build order |
+| [docs/00-JD-original.md](docs/00-JD-original.md) | The hackathon brief, verbatim |
+| [goalflow-api/README.md](goalflow-api/README.md) | Env vars, endpoints, jobs |
+| [goalflow_app/README.md](goalflow_app/README.md) | Screens, folder layout, design tokens |
 
 ---
 
 ## Checks
 
 ```bash
-cd goalflow-api  && npm run typecheck   # clean
-cd goalflow_app  && flutter analyze     # No issues found
-cd goalflow_app  && flutter test        # all pass
+cd goalflow-api && npm run typecheck   # clean
+cd goalflow_app && flutter analyze     # No issues found
+cd goalflow_app && flutter test        # 12 passing
 ```
 
 ---
 
-## Deployment
+## Layout
 
-See [docs/02-deployment.md](docs/02-deployment.md). Summary: MongoDB Atlas for the
-database, Render for the API (`render.yaml` blueprint included), and a release APK
-built with `--dart-define=API_BASE_URL=...` for distribution.
+```
+GoalFlow/
+├── docs/              design, deployment and technical docs
+├── render.yaml        Render blueprint
+├── goalflow-api/      Node + TypeScript + Express + Mongoose
+└── goalflow_app/      Flutter
+```
